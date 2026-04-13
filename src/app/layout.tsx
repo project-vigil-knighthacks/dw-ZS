@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DW-ZS",
-  description: "Test site for Vigil SIEM monitoring",
+  title: "DW-ZS · Vigil SIEM Testing",
+  description: "Deployed test website for Vigil SIEM — security monitoring, log analysis, and threat detection.",
 };
 
 export default function RootLayout({
@@ -26,9 +26,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100">
+      <body className="min-h-full flex flex-col bg-[var(--background)] text-[var(--foreground)] antialiased overflow-x-hidden">
         <Nav />
         <main className="flex-1">{children}</main>
       </body>
