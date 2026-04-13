@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 
 /**
- * Middleware that captures every request and fires an Apache-format log line
+ * Proxy that captures every request and fires an Apache-format log line
  * to the Vigil SIEM backend's /api/ingest endpoint.
  *
  * Runs at the edge on Vercel — zero config needed on the website beyond
  * setting VIGIL_API_URL in the environment.
  */
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest, event: NextFetchEvent) {
   const res = NextResponse.next();
 
-  // Fire-and-forget: don't block the response
   const vigilUrl = process.env.VIGIL_API_URL;
   if (vigilUrl) {
     const ip =
@@ -24,14 +23,16 @@ export function middleware(req: NextRequest) {
     // Apache Combined Log Format line
     const logLine = `${ip} - - [${ts}] "${method} ${uri} ${protocol}" 200 0`;
 
-    // Non-blocking POST
-    fetch(`${vigilUrl}/api/ingest`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: logLine }),
-    }).catch(() => {
-      // Silently ignore — SIEM being down shouldn't affect the site
-    });
+    // Keep the response fast, but let the logging request finish in the background.
+    event.waitUntil(
+      fetch(`${vigilUrl}/api/ingest`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: logLine }),
+      }).catch(() => {
+        // Silently ignore — SIEM being down shouldn't affect the site
+      })
+    );
   }
 
   return res;
