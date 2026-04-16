@@ -57,7 +57,10 @@ export function proxy(req: NextRequest, event: NextFetchEvent) {
     event.waitUntil(
       fetch(`${vigilUrl}/api/ingest`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "bypass-tunnel-reminder": "true",
+        },
         body: JSON.stringify({ content: logLine }),
       }).catch(() => {
         // Silently ignore — SIEM being down shouldn't affect the site
